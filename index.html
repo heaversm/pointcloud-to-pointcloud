@@ -58,7 +58,11 @@
 
 			var clock = new THREE.Clock();
 
-			var stats;
+            var stats;
+            var curModelIndex = 0;
+            var models = ['gesture.obj','brody.obj','brody2.obj','duo.obj']
+            var finalModelIndex = models.length-1;
+            var addModel = true;
 
 			init();
 			animate();
@@ -74,22 +78,26 @@
 
                 camera.lookAt( scene.position );
 
-				var loader = new THREE.OBJLoader();
+                var loader = new THREE.OBJLoader();
 
-				loader.load( 'models/obj/gesture.obj', function ( object ) {
-
-					var positions = combineBuffer( object, 'position' );
-
-					createMesh( positions, scene, 25,  0, -500, 0, 0xff99ff, true );
-
-                } );
-
-                loader.load('models/obj/brody.obj', function (object) {
-
+                loader.load(`models/obj/${models[0]}`, (object) => {
                     var positions = combineBuffer(object, 'position');
+                    createMesh(positions, scene, 25, 0, -500, 0, 0xff99ff, true);
+                });
 
-                    createMesh(positions, scene, 25, 0, -500, 0, 0x18fbdd, false);
+                loader.load(`models/obj/${models[1]}`, (object) => {
+                    var positions = combineBuffer(object, 'position');
+                    createMesh(positions, scene, 25, 0, -500, 0, 0xff99ff, false);
+                });
 
+                loader.load(`models/obj/${models[2]}`, (object) => {
+                    var positions = combineBuffer(object, 'position');
+                    createMesh(positions, scene, 25, 0, -500, 0, 0xff99ff, false);
+                });
+
+                loader.load(`models/obj/${models[3]}`, (object) => {
+                    var positions = combineBuffer(object, 'position');
+                    createMesh(positions, scene, 25, 0, -500, 0, 0xff99ff, false);
                 });
 
 				renderer = new THREE.WebGLRenderer( { antialias: false } );
@@ -231,33 +239,35 @@
 
 			function render () {
 
+                if (meshes.length < finalModelIndex+1){
+                    return;
+                }
+
 				var delta = 10 * clock.getDelta();
 
 				delta = delta < 2 ? delta : 2;
 
-				for( var j = 0; j < meshes.length-1; j ++ ) {
-
-					var data = meshes[ j ];
+					var data = meshes[ 0 ];
 					var positions = data.mesh.geometry.attributes.position;
                     var initialPositions = data.mesh.geometry.attributes.initialPosition;
-                    var data2 = meshes[j+1];
+                    let nextModelIndex;
+                    if (curModelIndex < finalModelIndex){
+                        nextModelIndex = curModelIndex+1;
+                    } else {
+                        nextModelIndex = 0;
+                    }
+                    var data2 = meshes[nextModelIndex];
                     var positions2 = data2.mesh.geometry.attributes.initialPosition;
 
                     var count = positions.count;
                     var count2 = positions2.count;
 
 					if ( data.start > 0 ) {
-
 						data.start -= 1;
-
 					} else {
-
 						if ( data.direction === 0 ) {
-
 							data.direction = -1;
-
 						}
-
 					}
 
 					for ( var i = 0; i < count; i ++ ) {
@@ -341,10 +351,13 @@
 
 					// all vertices down
 					if ( data.verticesDown >= count ) {
-
 						if ( data.delay <= 0 ) {
-
-							data.direction = 1;
+                            if (curModelIndex < finalModelIndex){
+                                curModelIndex++;
+                            } else {
+                                curModelIndex = 0;
+                            }
+							//data.direction = 1;
 							data.speed = 5;
 							data.verticesDown = 0;
 							data.delay = 320;
@@ -359,10 +372,14 @@
 
 					// all vertices up
 					if ( data.verticesUp >= count ) {
-
 						if ( data.delay <= 0 ) {
-
-							data.direction = -1;
+                            /*console.log('up');
+                            if (curModelIndex < finalModelIndex) {
+                                curModelIndex++;
+                            } else {
+                                curModelIndex = 0;
+                            }*/
+							//data.direction = -1;
 							data.speed = 15;
 							data.verticesUp = 0;
 							data.delay = 120;
@@ -377,7 +394,6 @@
 
 					positions.needsUpdate = true;
 
-				}
 
 				composer.render( 0.01 );
 
