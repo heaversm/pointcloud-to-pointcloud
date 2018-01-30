@@ -60,9 +60,22 @@
 
             var stats;
             var curModelIndex = 0;
-            var models = ['gesture.obj','brody.obj','brody2.obj','duo.obj']
+			var models = ['figures/02.obj','figures/03.obj','figures/04.obj'];
+			//var models = ['obj/02.obj','obj/01.obj','obj/03.obj'];
             var finalModelIndex = models.length-1;
-            var addModel = true;
+			var addModel = true;
+			
+			var pointSize = 15;
+			var modelScale = 100;
+			//var modelScale = 25;
+			var modelY = -500;
+			var cameraX = 0;
+			var cameraY = 0;
+			var cameraZ = 2500;
+			var animSpeed = 0.1;
+			/*var cameraX = 0;
+			var cameraY = 700;
+			var cameraZ = 7000;*/
 
 			init();
 			animate();
@@ -70,7 +83,7 @@
 			function init() {
 
 				camera = new THREE.PerspectiveCamera( 20, window.innerWidth / window.innerHeight, 1, 50000 );
-                camera.position.set( 0, 700, 7000 );
+                camera.position.set( cameraX, cameraY, cameraZ );
 
 				scene = new THREE.Scene();
 				scene.background = new THREE.Color( 0x000104 );
@@ -78,27 +91,20 @@
 
                 camera.lookAt( scene.position );
 
-                var loader = new THREE.OBJLoader();
+				var loader = new THREE.OBJLoader();
 
-                loader.load(`models/obj/${models[0]}`, (object) => {
+				loader.load(`models/${models[0]}`, (object) => {
                     var positions = combineBuffer(object, 'position');
-                    createMesh(positions, scene, 25, 0, -500, 0, 0xff99ff, true);
+                    createMesh(positions, scene, modelScale, 0, modelY, 0, 0xff99ff, true);
                 });
+				
+				for(let i = 1; i<models.length;i++){
+					loader.load(`models/${models[i]}`, (object) => {
+						var positions = combineBuffer(object, 'position');
+						createMesh(positions, scene, modelScale, 0, modelY, 0, 0xff99ff, false);
+					});
 
-                loader.load(`models/obj/${models[1]}`, (object) => {
-                    var positions = combineBuffer(object, 'position');
-                    createMesh(positions, scene, 25, 0, -500, 0, 0xff99ff, false);
-                });
-
-                loader.load(`models/obj/${models[2]}`, (object) => {
-                    var positions = combineBuffer(object, 'position');
-                    createMesh(positions, scene, 25, 0, -500, 0, 0xff99ff, false);
-                });
-
-                loader.load(`models/obj/${models[3]}`, (object) => {
-                    var positions = combineBuffer(object, 'position');
-                    createMesh(positions, scene, 25, 0, -500, 0, 0xff99ff, false);
-                });
+				}
 
 				renderer = new THREE.WebGLRenderer( { antialias: false } );
 				renderer.setPixelRatio( window.devicePixelRatio );
@@ -207,7 +213,7 @@
 
 					var c = ( i < clones.length -1 ) ? 0x252525 : color;
 
-					mesh = new THREE.Points( geometry, new THREE.PointsMaterial( { size: 30, color: c } ) );
+					mesh = new THREE.Points( geometry, new THREE.PointsMaterial( { size: pointSize, color: c } ) );
 					mesh.scale.x = mesh.scale.y = mesh.scale.z = scale;
 
 					mesh.position.x = x + clones[ i ][ 0 ];
@@ -241,7 +247,8 @@
 
                 if (meshes.length < finalModelIndex+1){
                     return;
-                }
+				}
+				
 
 				var delta = 10 * clock.getDelta();
 
@@ -358,9 +365,10 @@
                                 curModelIndex = 0;
                             }
 							//data.direction = 1;
-							data.speed = 5;
+							data.speed = animSpeed;
 							data.verticesDown = 0;
 							data.delay = 320;
+							console.log('down');
 
 						} else {
 
@@ -373,17 +381,9 @@
 					// all vertices up
 					if ( data.verticesUp >= count ) {
 						if ( data.delay <= 0 ) {
-                            /*console.log('up');
-                            if (curModelIndex < finalModelIndex) {
-                                curModelIndex++;
-                            } else {
-                                curModelIndex = 0;
-                            }*/
-							//data.direction = -1;
-							data.speed = 15;
+							data.speed = animSpeed;
 							data.verticesUp = 0;
 							data.delay = 120;
-
 						} else {
 
 							data.delay -= 1;
